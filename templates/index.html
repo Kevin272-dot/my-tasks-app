@@ -26,7 +26,11 @@
         endif %}
       </td>
       <td>
-        {% if task.completed %} ✓ Completed {% else %} Pending {% endif %}
+        {% if task.completed %}
+        <span class="status-completed">✓ Completed</span>
+        {% else %}
+        <span class="status-pending">Pending</span>
+        {% endif %}
       </td>
       <td>
         <a href="{{ url_for('edit_task', task_id=task.id) }}">Edit</a>
