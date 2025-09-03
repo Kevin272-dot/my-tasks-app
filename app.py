@@ -25,25 +25,61 @@ class Task(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        task_title = request.form.get('task')
-        due_date = request.form.get('due_date')
-        new_task = Task(title=task_title, due_date=due_date)
-        db.session.add(new_task)
-        db.session.commit()
+        try:
+            task_title = request.form.get('task')
+            due_date = request.form.get('due_date')
+            if due_date:  # Convert the string to datetime if present
+                due_date = datetime.fromisoformat(due_date)
+            print(f"Adding new task: {task_title} with due date: {due_date}")
+            new_task = Task(title=task_title, due_date=due_date)
+            db.session.add(new_task)
+            db.session.commit()
+            print("Task added successfully")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error occurred while adding task: {e}")
         return redirect('/')
     else:
         tasks = Task.query.order_by(Task.id).all()
+        print(f"Found {len(tasks)} tasks in database")
+        for task in tasks:
+            print(
+                f"Task: {task.title}, Due: {task.due_date}, Completed: {task.completed}")
         return render_template('index.html', tasks=tasks)
+
+
+@app.route('/delete/<int:id>')
+def delete(id):
+    task_to_delete = Task.query.get_or_404(id)
+    try:
+        db.session.delete(task_to_delete)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error occurred: {e}")
+    return redirect('/')
 
 
 @app.route('/edit/<int:task_id>', methods=['GET', 'POST'])
 def edit_task(task_id):
     task = Task.query.get_or_404(task_id)
     if request.method == 'POST':
-        task.title = request.form.get('task')
-        task.due_date = request.form.get('due_date')
-        db.session.commit()
+        try:
+            # Changed from 'task' to 'title' to match form
+            task.title = request.form.get('title')
+            due_date = request.form.get('due_date')
+            if due_date:  # Convert the string to datetime if present
+                task.due_date = datetime.fromisoformat(due_date)
+            else:
+                task.due_date = None
+            task.completed = request.form.get('completed') == 'on'
+            db.session.commit()
+            print(f"Task updated successfully: {task.title}")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error updating task: {e}")
         return redirect('/')
+    return render_template('edit.html', task=task)
     return render_template('edit.html', task=task)
 
 
