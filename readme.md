@@ -6,8 +6,13 @@ source code:https://github.com/Kevin272-dot/my-tasks-app
 Functionality: Used for creating, updating day to day tasks to make everyday activities easier to track and complete.
 
 Frontend:
-HTML and CSS
+
+HTML
+
+CSS
 
 Backend:
-*FLASK
-*DB-SQLITE3
+
+FLASK
+
+DB-SQLITE3
