@@ -1,10 +1,15 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-
+from flask_migrate import Migrate
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///to_do.db'
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
+    os.path.join(basedir, 'todo.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class Task(db.Model):
@@ -29,6 +34,17 @@ def home():
     else:
         tasks = Task.query.order_by(Task.id).all()
         return render_template('index.html', tasks=tasks)
+
+
+@app.route('/edit/<int:task_id>', methods=['GET', 'POST'])
+def edit_task(task_id):
+    task = Task.query.get_or_404(task_id)
+    if request.method == 'POST':
+        task.title = request.form.get('task')
+        task.due_date = request.form.get('due_date')
+        db.session.commit()
+        return redirect('/')
+    return render_template('edit.html', task=task)
 
 
 if __name__ == '__main__':
